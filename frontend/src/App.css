@@ -1,0 +1,108 @@
+body {
+  font-family: Arial;
+  background: #f4f6f8;
+}
+
+.auth-container {
+  width: 360px;
+  margin: 80px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+input, select, button {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+}
+
+button {
+  background: #f1f2f4;
+  color: rgb(108, 131, 223);
+  border: none;
+  cursor: pointer;
+}
+
+.error { color: red; text-align: center; }
+.success { color: green; text-align: center; }
+
+
+
+.home-container {
+  height: 100vh;
+  background: linear-gradient(to right, #2563eb, #54b383);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  text-align: center;
+}
+
+.home-container h1 {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.home-title {
+  font-size: 52px;     
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+
+.tagline {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.home-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.home-buttons button {
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 120px;
+  text-align: center;
+}
+
+.home-buttons button:first-child {
+  background: white;
+  color: #2563eb;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.admin-action-btn {
+  background: white;          
+  color: #2563eb;             
+  border: 1px solid #2563eb;  
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.admin-action-btn:hover {
+  background: #2563eb;  
+  color: white;
+}
+
+.form-submit-btn {
+  font-weight: bold;         
+  color: #2563eb;             
+  background: #f1f2f4;        
+  border: 1px solid #2563eb;  
+}
+
