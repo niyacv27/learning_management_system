@@ -102,7 +102,7 @@ learning-management-system/
 
 - View all courses with assigned teachers
 
-= Full access to system data
+- Full access to system data
 
 ### Teacher Features
 
