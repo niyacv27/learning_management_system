@@ -5,7 +5,6 @@ exports.addTeacher = async (req, res) => {
   try {
     console.log("=== ADD TEACHER HIT ===");
     console.log("BODY:", req.body);
-    console.log("FILE:", req.file);
     console.log("USER:", req.user);
 
     const { name, email, password } = req.body;
@@ -21,14 +20,14 @@ exports.addTeacher = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const image = req.file ? req.file.filename : null;
+    
 
     await User.create({
       name,
       email,
       password: hashedPassword,
-      role: "teacher",
-      image
+      role: "teacher"
+      
     });
 
     res.json({ message: "Teacher added successfully" });

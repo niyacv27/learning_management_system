@@ -1,34 +1,33 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 import AdminNavbar from "../components/AdminNavbar";
+import { toast } from "react-toastify";
 
 export default function AdminDashboard() {
-  const [view, setView] = useState(""); 
+  const [view, setView] = useState("all");
 
-  
-  const [form, setForm] = useState({
+  const [courseForm, setCourseForm] = useState({
     title: "",
     duration: "",
-    features: "",
     description: "",
     teacher: ""
   });
 
-  const [courses, setCourses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [editId, setEditId] = useState(null);
-
-  
   const [teacherForm, setTeacherForm] = useState({
     name: "",
     email: "",
-    password: "",
-    image: null
+    password: ""
   });
+
+  const [courses, setCourses] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => {
     fetchCourses();
     fetchTeachers();
+    fetchEnrollments();
   }, []);
 
   const fetchCourses = async () => {
@@ -41,26 +40,48 @@ export default function AdminDashboard() {
     setTeachers(res.data);
   };
 
+  const fetchEnrollments = async () => {
+    const res = await api.get("/enrollments");
+    setEnrollments(res.data.filter(e => e.status === "pending"));
+  };
+
+  
+  const addTeacher = async () => {
+    const { name, email, password } = teacherForm;
+
+    if (!name || !email || !password) {
+      toast.error("All fields required");
+      return;
+    }
+
+    await api.post("/admin/add-teacher", teacherForm);
+    toast.success("Teacher added");
+
+    setTeacherForm({ name: "", email: "", password: "" });
+    fetchTeachers();
+  };
+
   
   const submitCourse = async () => {
-    const { title, duration, teacher } = form;
+    const { title, duration, teacher } = courseForm;
 
     if (!title || !duration || !teacher) {
-      alert("Title, Duration & Teacher are required");
+      toast.error("All fields required");
       return;
     }
 
     if (editId) {
-      await api.put(`/courses/${editId}`, form);
+      await api.put(`/courses/${editId}`, courseForm);
+      toast.success("Course updated");
       setEditId(null);
     } else {
-      await api.post("/courses", form);
+      await api.post("/courses", courseForm);
+      toast.success("Course added");
     }
 
-    setForm({
+    setCourseForm({
       title: "",
       duration: "",
-      features: "",
       description: "",
       teacher: ""
     });
@@ -69,57 +90,36 @@ export default function AdminDashboard() {
     setView("all");
   };
 
-  const editCourse = (course) => {
-    setEditId(course._id);
-    setForm({
-      title: course.title,
-      duration: course.duration,
-      features: course.features,
-      description: course.description,
-      teacher: course.teacher?._id || ""
+  const editCourse = (c) => {
+    setEditId(c._id);
+    setCourseForm({
+      title: c.title,
+      duration: c.duration,
+      description: c.description,
+      teacher: c.teacher?._id
     });
     setView("course");
   };
 
   const deleteCourse = async (id) => {
     await api.delete(`/courses/${id}`);
+    toast.warning("Course deleted");
     fetchCourses();
   };
 
   
-  const addTeacher = async () => {
-    const { name, email, password, image } = teacherForm;
-
-    if (!name || !email || !password) {
-      alert("All teacher fields are required");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("password", password);
-    if (image) formData.append("image", image);
-
-    await api.post("/admin/add-teacher", formData);
-
-    alert("Teacher added successfully");
-    setTeacherForm({ name: "", email: "", password: "", image: null });
-    fetchTeachers();
+  const approve = async (id) => {
+    await api.put(`/enrollments/${id}/status`, { status: "approved" });
+    toast.success("Enrollment approved");
+    fetchEnrollments();
   };
 
- 
-  const formBoxStyle = {
-    maxWidth: "600px",
-    marginTop: "20px"
+  const reject = async (id) => {
+    await api.put(`/enrollments/${id}/status`, { status: "rejected" });
+    toast.warning("Enrollment rejected");
+    fetchEnrollments();
   };
 
-  const inputStyle = {
-    width: "100%",
-    marginBottom: "12px"
-  };
-
-  
   return (
     <>
       <AdminNavbar />
@@ -127,24 +127,30 @@ export default function AdminDashboard() {
       <div style={{ padding: "20px" }}>
         <h2>Admin Dashboard</h2>
 
-        
-        <div style={{ display: "flex", gap: "15px", maxWidth: "600px" }}>
-          <button className="admin-action-btn" onClick={() => setView("teacher")}>Add Teacher</button>
-          <button className="admin-action-btn" onClick={() => setView("course")}>Add Course</button>
-          <button className="admin-action-btn" onClick={() => setView("all")}>All Courses</button>
-
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button className="admin-action-btn" onClick={() => setView("teacher")}>
+            Add Teacher
+          </button>
+          <button className="admin-action-btn" onClick={() => setView("course")}>
+            Add Course
+          </button>
+          <button className="admin-action-btn" onClick={() => setView("all")}>
+            All Courses
+          </button>
+          <button className="admin-action-btn" onClick={() => setView("enroll")}>
+            Enrollment Requests
+          </button>
         </div>
 
         <hr />
 
-      
+        
         {view === "teacher" && (
-          <div style={formBoxStyle}>
+          <div className="admin-form-container">
             <h3>Add Teacher</h3>
 
             <input
-              style={inputStyle}
-              placeholder="Teacher Name"
+              placeholder="Name"
               value={teacherForm.name}
               onChange={(e) =>
                 setTeacherForm({ ...teacherForm, name: e.target.value })
@@ -152,8 +158,7 @@ export default function AdminDashboard() {
             />
 
             <input
-              style={inputStyle}
-              placeholder="Teacher Email"
+              placeholder="Email"
               value={teacherForm.email}
               onChange={(e) =>
                 setTeacherForm({ ...teacherForm, email: e.target.value })
@@ -161,7 +166,6 @@ export default function AdminDashboard() {
             />
 
             <input
-              style={inputStyle}
               type="password"
               placeholder="Password"
               value={teacherForm.password}
@@ -170,62 +174,49 @@ export default function AdminDashboard() {
               }
             />
 
-            <input
-              style={inputStyle}
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                setTeacherForm({ ...teacherForm, image: e.target.files[0] })
-              }
-            />
-
-            <button className="form-submit-btn" onClick={addTeacher}>
-               Add Teacher
+            <button
+              className="form-submit-btn teacher-btn"
+              onClick={addTeacher}
+            >
+              Add Teacher
             </button>
-
           </div>
         )}
 
         
         {view === "course" && (
-          <div style={formBoxStyle}>
+          <div className="admin-form-container">
             <h3>{editId ? "Edit Course" : "Add Course"}</h3>
 
             <input
-              style={inputStyle}
-              placeholder="Course Title"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Title"
+              value={courseForm.title}
+              onChange={(e) =>
+                setCourseForm({ ...courseForm, title: e.target.value })
+              }
             />
 
             <input
-              style={inputStyle}
               placeholder="Duration"
-              value={form.duration}
-              onChange={(e) => setForm({ ...form, duration: e.target.value })}
-            />
-
-            <input
-              style={inputStyle}
-              placeholder="Features"
-              value={form.features}
-              onChange={(e) => setForm({ ...form, features: e.target.value })}
+              value={courseForm.duration}
+              onChange={(e) =>
+                setCourseForm({ ...courseForm, duration: e.target.value })
+              }
             />
 
             <textarea
-              style={inputStyle}
-              rows={4}
               placeholder="Description"
-              value={form.description}
+              value={courseForm.description}
               onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
+                setCourseForm({ ...courseForm, description: e.target.value })
               }
             />
 
             <select
-              style={inputStyle}
-              value={form.teacher}
-              onChange={(e) => setForm({ ...form, teacher: e.target.value })}
+              value={courseForm.teacher}
+              onChange={(e) =>
+                setCourseForm({ ...courseForm, teacher: e.target.value })
+              }
             >
               <option value="">Select Teacher</option>
               {teachers.map((t) => (
@@ -235,32 +226,63 @@ export default function AdminDashboard() {
               ))}
             </select>
 
-            <button className="form-submit-btn" onClick={submitCourse}>
-               {editId ? "Update Course" : "Add Course"}
+            <button
+              className="form-submit-btn course-btn"
+              onClick={submitCourse}
+            >
+              {editId ? "Update Course" : "Add Course"}
             </button>
-
           </div>
         )}
 
-       
+        
+        {view === "enroll" && (
+          <>
+            <h3>Enrollment Requests</h3>
+
+            {enrollments.map((e) => (
+              <div
+                key={e._id}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "10px",
+                  marginBottom: "8px",
+                  borderRadius: "6px"
+                }}
+              >
+                <p><b>Student:</b> {e.student.name}</p>
+                <p><b>Course:</b> {e.course.title}</p>
+
+                <button
+                  className="status-btn approve"
+                  onClick={() => approve(e._id)}
+                >
+                  Approve
+                </button>
+
+                <button
+                  className="status-btn reject"
+                  onClick={() => reject(e._id)}
+                >
+                  Reject
+                </button>
+              </div>
+            ))}
+          </>
+        )}
+
+        
         {view === "all" && (
           <>
             <h3>All Courses</h3>
 
-            <table
-              border="1"
-              cellPadding="8"
-              cellSpacing="0"
-              width="100%"
-              style={{ background: "white", tableLayout: "fixed" }}
-            >
-              <thead style={{ background: "#e5e7eb" }}>
+            <table border="1" cellPadding="8" width="100%">
+              <thead>
                 <tr>
                   <th>Title</th>
                   <th>Duration</th>
                   <th>Description</th>
                   <th>Teacher</th>
-                  <th>Image</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -270,45 +292,18 @@ export default function AdminDashboard() {
                   <tr key={c._id}>
                     <td>{c.title}</td>
                     <td>{c.duration}</td>
-                    <td style={{ wordWrap: "break-word" }}>
-                      {c.description}
-                    </td>
+                    <td>{c.description}</td>
                     <td>{c.teacher?.name}</td>
-                    <td style={{ textAlign: "center" }}>
-                      {c.teacher?.image && (
-                        <img
-                          src={`http://localhost:5000/uploads/${c.teacher.image}`}
-                          alt="Teacher"
-                          width="70"
-                          height="70"
-                          style={{ borderRadius: "50%" }}
-                        />
-                      )}
-                    </td>
-                    <td style={{ textAlign: "center" }}>
+                    <td>
                       <button
+                        className="edit-btn"
                         onClick={() => editCourse(c)}
-                        style={{
-                          width: "65px",
-                          padding: "4px",
-                          fontSize: "12px",
-                          marginRight: "5px",
-                          background: "#a9c171ff",
-                           color: "#0f0f0fde"
-                        }}
                       >
                         Edit
                       </button>
-
                       <button
+                        className="delete-btn"
                         onClick={() => deleteCourse(c._id)}
-                        style={{
-                          width: "65px",
-                          padding: "4px",
-                          fontSize: "12px",
-                          color: "#0f0f0fde",
-                          background: "#e75353ff"
-                        }}
                       >
                         Delete
                       </button>

@@ -2,32 +2,31 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { toast } from "react-toastify";   
 import "../App.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
 
   const navigate = useNavigate();
 
   const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
 
   const login = async () => {
-    setMsg("");
-
+    
     if (!email || !password) {
-      setMsg("All fields are required");
+      toast.warning("All fields are required");
       return;
     }
 
     if (!validateEmail(email)) {
-      setMsg("Enter a valid email address");
+      toast.error("Enter a valid email address");
       return;
     }
 
     if (password.length < 6) {
-      setMsg("Password must be at least 6 characters");
+      toast.warning("Password must be at least 6 characters");
       return;
     }
 
@@ -35,6 +34,8 @@ export default function Login() {
       const res = await api.post("/auth/login", { email, password });
 
       localStorage.setItem("token", res.data.token);
+
+      toast.success("Login successful");   
 
       if (res.data.role === "admin") {
         navigate("/admin");
@@ -44,20 +45,18 @@ export default function Login() {
         navigate("/user");
       }
     } catch (err) {
-      setMsg(err.response?.data?.message || "Login failed");
+      toast.error(
+        err.response?.data?.message || "Invalid email or password"
+      ); 
     }
   };
 
   return (
     <>
-      
       <Navbar />
 
-      
       <div className="auth-container">
         <h2>Sign In</h2>
-
-        {msg && <div className="error">{msg}</div>}
 
         <input
           placeholder="Email"
@@ -74,7 +73,6 @@ export default function Login() {
 
         <button onClick={login}>Sign In</button>
 
-        
         <button
           style={{
             marginTop: "10px",

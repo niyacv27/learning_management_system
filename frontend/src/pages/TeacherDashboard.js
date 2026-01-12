@@ -1,34 +1,51 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import { toast } from "react-toastify";
 
 export default function TeacherDashboard() {
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
-
-  
   const [records, setRecords] = useState({});
+  const [enrollments, setEnrollments] = useState([]);
 
   useEffect(() => {
     fetchCourses();
+    fetchEnrollments();
   }, []);
 
   const fetchCourses = async () => {
-    const res = await api.get("/teacher/courses");
-    setCourses(res.data);
+    try {
+      const res = await api.get("/teacher/courses");
+      setCourses(res.data);
+    } catch {
+      toast.error("Failed to load courses");
+    }
+  };
+
+  const fetchEnrollments = async () => {
+    try {
+      const res = await api.get("/enrollments/teacher");
+      setEnrollments(res.data);
+    } catch {
+      toast.error("Failed to load enrollments");
+    }
   };
 
   const viewStudents = async (courseId) => {
-    const res = await api.get(`/teacher/students/${courseId}`);
-    setSelectedCourse(courseId);
-    setStudents(res.data);
+    try {
+      const res = await api.get(`/teacher/students/${courseId}`);
+      setSelectedCourse(courseId);
+      setStudents(res.data);
+    } catch {
+      toast.error("Failed to load students");
+    }
   };
 
   const saveRecord = async (studentId) => {
     const data = records[studentId];
-
     if (!data?.attendance || !data?.marks) {
-      alert("Enter attendance and marks");
+      toast.error("Enter attendance and marks");
       return;
     }
 
@@ -39,7 +56,27 @@ export default function TeacherDashboard() {
       marks: data.marks
     });
 
-    alert("Saved successfully");
+    toast.success("Attendance saved");
+  };
+
+  const markCompleted = async (studentId) => {
+    const enrollment = enrollments.find(
+      (e) =>
+        e.student._id === studentId &&
+        e.course._id === selectedCourse
+    );
+
+    if (!enrollment) {
+      toast.error("Enrollment not found");
+      return;
+    }
+
+    await api.put(`/enrollments/${enrollment._id}/status`, {
+      status: "completed"
+    });
+
+    toast.success("Course marked completed");
+    fetchEnrollments();
   };
 
   const logout = () => {
@@ -59,155 +96,82 @@ export default function TeacherDashboard() {
           justifyContent: "space-between",
           alignItems: "center",
           padding: "0 30px",
-          fontSize: "25px",
+          fontSize: "20px",
           fontWeight: "bold"
         }}
       >
-        <span>Learning Management System</span>
-        <button
-          onClick={logout}
-          style={{
-            width: "80px",
-            padding: "6px",
-            fontSize: "12px",
-            background: "#f0eaeaff",
-            color: "#2563eb",     
-            fontWeight: "bold"
-          }}
-        >
+        Teacher Dashboard
+        <button className="teacher-logout-btn" onClick={logout}>
           Logout
         </button>
       </div>
 
-      
       <div style={{ padding: "20px" }}>
-        <h2>Teacher Dashboard</h2>
-
-        
         <h3>My Courses</h3>
+
         {courses.map((c) => (
-          <div
-            key={c._id}
-            style={{
-              border: "1px solid #ccc",
-              marginBottom: "10px",
-              padding: "10px"
-            }}
-          >
+          <div key={c._id} style={{ marginBottom: "10px" }}>
             <b>{c.title}</b>
             <br />
             <button
+              className="teacher-view-btn"
               onClick={() => viewStudents(c._id)}
-              style={{
-                marginTop: "6px",
-                width: "160px",
-                padding: "6px",
-                fontSize: "13px",
-                color: "#5146b0ff",
-                fontweight: "bold"
-
-              }}
             >
-              View Enrolled Students
+              View Students
             </button>
           </div>
         ))}
 
-        
         {selectedCourse && (
           <>
-            <h3>Enrolled Students</h3>
+            <h3>Approved Students</h3>
 
-            {students.length === 0 ? (
-              <p>No students enrolled</p>
-            ) : (
-              <table
-                border="1"
-                cellPadding="8"
-                cellSpacing="0"
-                width="100%"
-                style={{ background: "white", tableLayout: "fixed" }}
-              >
-                <thead style={{ background: "#e5e7eb" }}>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Attendance (%)</th>
-                    <th>Marks</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
+            {students.map((s) => (
+              <div key={s._id} style={{ marginBottom: "12px" }}>
+                <b>{s.name}</b> ({s.email})
+                <br />
 
-                <tbody>
-                  {students.map((s) => (
-                    <tr key={s._id}>
-                      <td>{s.name}</td>
-                      <td>{s.email}</td>
+                <input
+                  placeholder="Attendance"
+                  onChange={(e) =>
+                    setRecords({
+                      ...records,
+                      [s._id]: {
+                        ...records[s._id],
+                        attendance: e.target.value
+                      }
+                    })
+                  }
+                />
 
-                     
-                      <td>
-                        <input
-                          type="number"
-                          style={{
-                            width: "100%",
-                            padding: "4px",
-                            margin: "0",
-                            boxSizing: "border-box"
-                          }}
-                          value={records[s._id]?.attendance || ""}
-                          onChange={(e) =>
-                            setRecords({
-                              ...records,
-                              [s._id]: {
-                                ...records[s._id],
-                                attendance: e.target.value
-                              }
-                            })
-                          }
-                        />
-                      </td>
+                <input
+                  placeholder="Marks"
+                  onChange={(e) =>
+                    setRecords({
+                      ...records,
+                      [s._id]: {
+                        ...records[s._id],
+                        marks: e.target.value
+                      }
+                    })
+                  }
+                />
 
-                      
-                      <td>
-                        <input
-                          type="number"
-                          style={{
-                            width: "100%",
-                            padding: "4px",
-                            margin: "0",
-                            boxSizing: "border-box"
-                          }}
-                          value={records[s._id]?.marks || ""}
-                          onChange={(e) =>
-                            setRecords({
-                              ...records,
-                              [s._id]: {
-                                ...records[s._id],
-                                marks: e.target.value
-                              }
-                            })
-                          }
-                        />
-                      </td>
+                <button
+                  className="teacher-save-btn"
+                  onClick={() => saveRecord(s._id)}
+                >
+                  Save
+                </button>
 
-                      <td style={{ textAlign: "center" }}>
-                        <button
-                          onClick={() => saveRecord(s._id)}
-                          style={{
-                            width: "70px",
-                            padding: "5px",
-                            fontSize: "13px",
-                            color: "#0d54e2ff"
-                          }}
-                        >
-                          Save
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                <button
+                  className="teacher-complete-btn"
+                  onClick={() => markCompleted(s._id)}
+                >
+                  Completed
+                </button>
+              </div>
+            ))}
           </>
         )}
       </div>

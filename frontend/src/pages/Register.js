@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../services/api";
 import Navbar from "../components/Navbar";
+import { toast } from "react-toastify";   
 import "../App.css";
 
 export default function Register() {
@@ -9,57 +10,52 @@ export default function Register() {
     email: "",
     password: ""
   });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const validateEmail = (email) => {
     return /\S+@\S+\.\S+/.test(email);
   };
 
   const register = async () => {
-    setError("");
-    setSuccess("");
-
+    
     if (!form.name || !form.email || !form.password) {
-      setError("All fields are required");
+      toast.warning("All fields are required");
       return;
     }
 
     if (form.name.length < 3) {
-      setError("Name must be at least 3 characters");
+      toast.error("Name must be at least 3 characters");
       return;
     }
 
     if (!validateEmail(form.email)) {
-      setError("Enter a valid email address");
+      toast.error("Enter a valid email address");
       return;
     }
 
     if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
+      toast.warning("Password must be at least 6 characters");
       return;
     }
 
     try {
       await api.post("/auth/register", form);
-      setSuccess("Registered successfully. Please login.");
+
+      toast.success("Registered successfully. Please login."); 
+
       setForm({ name: "", email: "", password: "" });
     } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
+      toast.error(
+        err.response?.data?.message || "Registration failed"
+      ); 
     }
   };
 
   return (
     <>
-      
       <Navbar />
 
-      
       <div className="auth-container">
         <h2>Sign Up (Student)</h2>
-
-        {error && <div className="error">{error}</div>}
-        {success && <div className="success">{success}</div>}
 
         <input
           placeholder="Full Name"

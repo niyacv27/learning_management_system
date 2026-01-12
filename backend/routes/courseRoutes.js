@@ -9,6 +9,6 @@ router.put("/:id", auth, role("admin"), controller.updateCourse);
 router.delete("/:id", auth, role("admin"), controller.deleteCourse);
 
 
-router.post("/enroll/:id", auth, role("user"), controller.enrollCourse);
+
 
 module.exports = router;

@@ -1,10 +1,16 @@
 const express = require("express");
-const { getMe } = require("../controllers/userController");
 const auth = require("../middleware/auth");
+const {
+  getMe,
+  updateMe
+} = require("../controllers/userController");
 
 const router = express.Router();
 
+
 router.get("/me", auth, getMe);
-router.post("/enroll/:id", auth, require("../controllers/courseController").enrollCourse);
+
+
+router.put("/me", auth, updateMe);
 
 module.exports = router;
