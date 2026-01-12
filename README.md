@@ -1,9 +1,10 @@
 # Learning Management System (LMS)
 ## Project Overview
 
-The **Learning Management System (LMS)** is a full-stack web application designed to manage courses, users, and learning activities in an educational environment. The system supports **role-based access for Admin, Teacher, and Student**, enabling secure authentication, course management, enrollment, attendance tracking, and performance evaluation.
+The **Learning Management System (LMS)** is a full-stack web application designed to manage courses, users, and learning activities in an educational environment.
+The system supports **role-based access** for **Admin, Teacher, and Student**, enabling secure authentication, course management, enrollment workflows, attendance tracking, performance evaluation, and status-based learning progression.
 
-This project is developed as part of the **Full Stack Development – Week 9 Capstone Assignment**, focusing on authentication, role handling, and complete CRUD functionality with proper frontend–backend integration.
+This project is developed as part of the **Full Stack Development – Final Capstone Project**, focusing on authentication, role handling, CRUD functionality, advanced workflows, security, validation, and production-ready backend practices.
 
 ---
 ## Objectives
@@ -14,9 +15,15 @@ This project is developed as part of the **Full Stack Development – Week 9 Cap
 
 - Build a fully functional CRUD module
 
-- Ensure frontend–backend integration
+- Implement status-based workflows
 
-- Apply validation and error handling
+- Enforce ownership and access rules
+
+- Apply backend validation and centralized error handling
+
+- Enhance application security
+
+- Ensure complete frontend–backend integration
 
 ---
 ## Technologies Used
@@ -40,8 +47,6 @@ This project is developed as part of the **Full Stack Development – Week 9 Cap
 
 - JSON Web Token (JWT)
 
-- Multer (Image Upload)
-
 ---
 ## Project Structure
 ```md
@@ -63,8 +68,8 @@ learning-management-system/
 │   ├── routes/
 │   ├── middleware/
 │   ├── config/
-│   ├── uploads/
 │   ├── server.js
+│   ├── createAdmin.js
 │   ├── package.json
 │   └── .gitignore
 │
@@ -73,7 +78,6 @@ learning-management-system/
 ```
 
 ---
-
 ## Authentication & Authorization
 
 - User Registration API
@@ -82,28 +86,27 @@ learning-management-system/
 
 - Secure token storage on frontend
 
-- Protected routes using role-based access
+- Protected routes using authentication middleware
 
-- Unauthorized access handling
+- Role-based API access (Admin / Teacher / Student)
+
+- Unauthorized access handling with proper error messages
 
 ---
 ## Features Implemented
 ### Admin Features
 
-- Admin login with secure authentication
+- Secure admin login
 
-- Add teachers with profile image upload
+- Create, update, and delete courses
 
-- Add new courses
+- View all courses and enrollments
 
-- Edit course details
-
-- Delete courses
-
-- View all courses with assigned teachers
+- Approve or reject student enrollments
 
 - Full access to system data
 
+---
 ### Teacher Features
 
 - Teacher login
@@ -112,45 +115,92 @@ learning-management-system/
 
 - View enrolled students for each course
 
-- Add attendance percentage for students
+- Add attendance percentage
 
-- Add assignment marks for students
+- Add marks for students
 
+- Mark courses as completed
+
+---
 ### Student Features
 
 - User registration and login
 
 - View all available courses
 
-- View course details including teacher name and image
-
 - Enroll in courses
+
+- Track enrollment status
 
 - View enrolled courses
 
-- View attendance and marks assigned by teachers
+- View attendance and marks
 
 ---
 ## Core CRUD Module
 ### Main Entity: Course
 
-CRUD Operations:
+#### CRUD Operations
 
 - Create – Admin adds courses
 
-- Read – Courses displayed to Admin, Teacher, and Students
+- Read – Courses visible to Admin, Teacher, and Students
 
 - Update – Admin edits course details
 
 - Delete – Admin deletes courses
 
-All CRUD APIs are fully connected to the frontend and data is displayed dynamically in the UI.
+All CRUD APIs are fully integrated with the frontend and rendered dynamically in the UI.
+
+---
+## Status-Based Workflow 
+
+- Status field added to enrollment entity
+
+- Valid statuses:
+
+  - pending
+
+  - approved
+
+  - rejected
+
+  - completed
+
+- Default status assigned during enrollment
+
+- Dedicated API to update status
+
+- Role-based status transitions:
+
+  - Admin → approve / reject
+
+  - Teacher → mark completed
+
+- Status displayed on frontend using color-coded badges
+
+---
+## Ownership & Role-Based Rules
+
+- Admin can view and modify all records
+
+- Students can view and modify only their own enrollments
+
+- Teachers can manage only their assigned courses and students
+
+- Backend ownership checks enforced
+
+- Unauthorized actions blocked with proper error responses
 
 ---
 ## Validation & Error Handling
 ### Backend Validation
 
 - Required field validation
+
+- Minimum length constraints
+
+- MongoDB ObjectId validation
 
 - Duplicate email prevention
 
@@ -164,18 +214,31 @@ All CRUD APIs are fully connected to the frontend and data is displayed dynamica
 
 - Empty field validation
 
-### Error Handling
+### Centralized Error Handling
 
-- Meaningful error messages
+- Global error handling middleware
 
-- Graceful API failure handling
+- Consistent HTTP status codes
 
-- Unauthorized access redirection
+- Clear, user-friendly error messages
+
+- Prevents server crashes
+
+---
+## Security Enhancements
+
+- JWT validation on all protected routes
+
+- Secure HTTP headers
+
+- API rate limiting
+
+- Graceful handling of expired or invalid tokens
 
 ---
 ## Submission Details
 
-Screenshots / screen recordings include:
+Screenshots include :
 
 - Login page
 
@@ -185,7 +248,34 @@ Screenshots / screen recordings include:
 
 - Role-based dashboards (Admin, Teacher, Student)
 
+- Status-based workflow (Pending → Approved → Completed)
+
+- Unauthorized access handling
+
+- Validation and error handling examples
+
 ---
 ## Conclusion
 
-This project satisfies all the requirements of the Week 9 Capstone Assignment, including authentication, role-based access, CRUD operations, frontend–backend integration, and validation.
+This project successfully fulfills all requirements of the Final Capstone Project, including:
+
+- Secure authentication and authorization
+
+- Role-based access control
+
+- Complete CRUD functionality
+
+- Status-based workflow implementation
+
+- Ownership enforcement
+
+- Backend validation and centralized error handling
+
+- Security best practices
+
+The application follows industry-standard backend architecture, making it production-ready and interview-ready.
+  
+
+Security best practices
+
+The application follows industry-standard backend architecture, making it production-ready and interview-ready.
