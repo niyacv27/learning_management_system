@@ -275,7 +275,3 @@ This project successfully fulfills all requirements of the Final Capstone Projec
 
 The application follows industry-standard backend architecture, making it production-ready and interview-ready.
   
-
-Security best practices
-
-The application follows industry-standard backend architecture, making it production-ready and interview-ready.
